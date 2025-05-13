@@ -18,6 +18,7 @@ import { ShortCutKey } from './modules/shortcut-key'
 import Syntax from './modules/syntax' // 代码块高亮
 import { BetterToolbar } from './modules/toolbar' // 工具栏
 import { ColorPicker, Picker } from './modules/toolbar/better-picker'
+import { YjsQuillModule } from './modules/YjsQuillModule'
 import SnowTheme from './themes/snow'
 import Icons from './ui/icons'
 
@@ -58,6 +59,7 @@ FluentEditor.register(
     'modules/toolbar': BetterToolbar,
     'modules/uploader': FileUploader,
     'modules/shortcut-key': ShortCutKey,
+    'modules/yjs-quill': YjsQuillModule,
 
     'themes/snow': SnowTheme,
 
