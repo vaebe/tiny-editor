@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type FluentEditor from '@opentiny/fluent-editor'
 import type { ShallowRef } from 'vue'
+import QuillCursors from 'quill-cursors'
 import { onMounted, useTemplateRef } from 'vue'
 
 async function createEditor(domRef: Readonly<ShallowRef<HTMLDivElement | null>>, user: { name: string, color: string }) {
@@ -11,10 +12,11 @@ async function createEditor(domRef: Readonly<ShallowRef<HTMLDivElement | null>>,
 
   try {
     const { default: FluentEditor } = await import('@opentiny/fluent-editor')
-
+    FluentEditor.register({ 'modules/cursors': QuillCursors })
     const editor = new FluentEditor(domRef.value, {
       theme: 'snow',
       modules: {
+        'cursors': true,
         'yjs-quill': {
           docName: 'collaborative-doc',
           wsUrl: 'ws://localhost:3000',

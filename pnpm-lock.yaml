@@ -102,6 +102,9 @@ importers:
       quill:
         specifier: ^2.0.0
         version: 2.0.3
+      quill-cursors:
+        specifier: ^4.0.4
+        version: 4.0.4
       quill-easy-color:
         specifier: ^0.0.9
         version: 0.0.9(quill@2.0.3)
