@@ -1,0 +1,108 @@
+.ql-flow-chart {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.ql-flow-chart-control {
+  position: absolute;
+  top: 8px;
+  right: 13px;
+  background-color: rgba(255, 255, 255, 0.85);
+  border-radius: 8px;
+  box-shadow: 0 3px 15px rgba(0, 0, 0, 0.15);
+  padding: 0 15px;
+  display: inline-flex;
+  gap: 6px;
+  white-space: nowrap;
+  pointer-events: auto;
+  .ql-flow-chart-control-item {
+    align-items: center;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 5px 10px;
+    transition: all 0.2s ease;
+    .ql-flow-chart-control-text {
+      height: 20px;
+      font-size: 12px;
+    }
+  }
+}
+.ql-flow-chart-left-down-control {
+  position: absolute;
+  bottom: 6px;
+  left: 6px;
+  background-color: rgba(255, 255, 255, 0.85);
+  border-radius: 8px;
+  box-shadow: 0 3px 15px rgba(0, 0, 0, 0.15);
+  display: inline-flex;
+  gap: 6px;
+  white-space: nowrap;
+  pointer-events: auto;
+  .ql-flow-chart-control-item {
+    align-items: center;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 5px 5px;
+    transition: all 0.2s ease;
+    .ql-flow-chart-control-text {
+      height: 20px;
+      font-size: 12px;
+    }
+  }
+}
+.ql-flow-chart-control-icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ql-flow-chart-control-item i {
+  background-size: cover;
+  display: inline-block;
+  height: 20px;
+  vertical-align: middle;
+  width: 20px;
+}
+.ql-flow-chart-control-item.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.ql-flow-chart-control-item:hover {
+  background-color: #efefef;
+}
+.ql-flow-chart-control-export {
+  background-image: url('../icons/exportIcon.png');
+}
+.ql-flow-chart-control-import {
+  background-image: url('../icons/importIcon.png');
+}
+.ql-flow-chart .lf-dndpanel .lf-dnd-text {
+  font-size: 12px;
+}
+
+.ql-flow-chart-control-zoomOut {
+  background-image: url('../icons/zoomOutIcon.png');
+}
+.ql-flow-chart-control-zoomIn {
+  background-image: url('../icons/zoomInIcon.png');
+}
+.ql-flow-chart-control-fit {
+  background-image: url('../icons/fitIcon.png');
+}
+.ql-flow-chart-control-back {
+  background-image: url('../icons/backIcon.png');
+}
+.ql-flow-chart-control-forward {
+  background-image: url('../icons/forwardIcon.png');
+}
+.ql-flow-chart .lf-text-input {
+  display: none !important;
+}

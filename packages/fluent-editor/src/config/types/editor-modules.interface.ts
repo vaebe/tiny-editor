@@ -45,4 +45,5 @@ export interface IEditorModules {
   'mathlive'?: boolean
   'image'?: boolean | Partial<BlotFormatterOptionsInput>
   'mind-map'?: boolean
+  'flow-chart'?: boolean
 }
