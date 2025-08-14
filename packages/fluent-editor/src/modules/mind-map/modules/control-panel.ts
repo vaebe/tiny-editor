@@ -51,13 +51,13 @@ class MindMapControlPanelHandler {
   }
 
   updateControlPanelTexts() {
-    const controlItems = this.blot.domNode.querySelectorAll('.mind-map-control-item')
+    const controlItems = this.blot.domNode.querySelectorAll('.ql-mind-map-control-item')
     controlItems.forEach((item) => {
       const icon = item.querySelector('i')
       if (icon) {
-        const iconClass = icon.className.split('-')[3]
+        const iconClass = icon.className.split('-')[4]
         if (this.texts[iconClass]) {
-          const textSpan = item.querySelector('.mind-map-control-text')
+          const textSpan = item.querySelector('.ql-mind-map-control-text')
           if (textSpan) {
             textSpan.textContent = this.texts[iconClass]
           }
@@ -77,13 +77,13 @@ export function createControlPanel(blot: MindMapPlaceholderBlot, quill: FluentEd
   let isEnd = true
   // 右上的控制面板
   const controlPanel = document.createElement('div')
-  controlPanel.className = 'mind-map-control'
+  controlPanel.className = 'ql-mind-map-control'
   // 左下的控制面板
   const controlLeftDownPanel = document.createElement('div')
-  controlLeftDownPanel.className = 'mind-map-left-down-control'
+  controlLeftDownPanel.className = 'ql-mind-map-left-down-control'
   // 左上的控制面板
   const controlLeftUpPanel = document.createElement('div')
-  controlLeftUpPanel.className = 'mind-map-left-up-control'
+  controlLeftUpPanel.className = 'ql-mind-map-left-up-control'
 
   const handler = new MindMapControlPanelHandler(quill, blot)
   controlPanelHandlers.set(blot, handler)
@@ -130,16 +130,16 @@ export function createControlPanel(blot: MindMapPlaceholderBlot, quill: FluentEd
 
 function createControlItem(iconClass: string, text: string, title: string, onClick: () => void, disabled = false) {
   const controlItem = document.createElement('div')
-  controlItem.className = 'mind-map-control-item'
+  controlItem.className = 'ql-mind-map-control-item'
   controlItem.title = title
   controlItem.style.cursor = disabled ? 'not-allowed' : 'pointer'
   controlItem.style.opacity = disabled ? DISABLED_OPACITY : ENABLED_OPACITY
 
   const icon = document.createElement('i')
-  icon.className = `mind-map-control-${iconClass}`
+  icon.className = `ql-mind-map-control-${iconClass}`
 
   const textSpan = document.createElement('span')
-  textSpan.className = 'mind-map-control-text'
+  textSpan.className = 'ql-mind-map-control-text'
   textSpan.textContent = text
 
   controlItem.appendChild(icon)

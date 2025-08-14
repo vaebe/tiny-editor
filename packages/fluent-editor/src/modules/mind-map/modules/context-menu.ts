@@ -34,7 +34,7 @@ class MindMapContextMenuHandler {
   updateContextMenuItems() {
     if (!this.blot.contextMenu) return
 
-    const menuItems = this.blot.contextMenu.querySelectorAll('.mind-map-context-menu-item')
+    const menuItems = this.blot.contextMenu.querySelectorAll('.ql-mind-map-context-menu-item')
     if (menuItems.length >= 4) {
       menuItems[0].textContent = this.texts.copy
       menuItems[1].textContent = this.texts.cut
@@ -48,7 +48,7 @@ const contextMenuHandlers = new WeakMap<MindMapPlaceholderBlot, MindMapContextMe
 
 export function initContextMenu(blot: MindMapPlaceholderBlot, quill: FluentEditor): void {
   blot.contextMenu = document.createElement('div')
-  blot.contextMenu.className = 'mind-map-context-menu'
+  blot.contextMenu.className = 'ql-mind-map-context-menu'
   blot.contextMenu.style.position = 'fixed'
   blot.contextMenu.style.background = 'white'
   blot.contextMenu.style.borderRadius = '4px'
@@ -60,7 +60,7 @@ export function initContextMenu(blot: MindMapPlaceholderBlot, quill: FluentEdito
   blot.contextMenu.style.opacity = '1'
   blot.contextMenu.style.width = '120px'
   blot.contextMenu.style.height = 'auto'
-  document.body.appendChild(blot.contextMenu)
+  blot.domNode.appendChild(blot.contextMenu)
 
   const handler = new MindMapContextMenuHandler(quill, blot)
   contextMenuHandlers.set(blot, handler)
@@ -104,7 +104,7 @@ export function initContextMenu(blot: MindMapPlaceholderBlot, quill: FluentEdito
 
 function addContextMenuItem(blot: MindMapPlaceholderBlot, text: string, onClick: () => void): void {
   const item = document.createElement('div')
-  item.className = 'mind-map-context-menu-item'
+  item.className = 'ql-mind-map-context-menu-item'
   item.textContent = text
   item.style.padding = '5px 15px'
   item.style.cursor = 'pointer'
