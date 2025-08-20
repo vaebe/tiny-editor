@@ -195,7 +195,7 @@ class SnowTheme extends OriginSnowTheme {
       }
 
       if (picker.select && picker.select.classList.contains('ql-header')) {
-        const getLabelKey = (v: string | null) => (v ? `h${v}` : 'normal')
+        const getLabelKey = (v: string | null) => (v ? `header-${v}` : 'header-normal')
 
         // 更新 label 文本
         const labelValue = picker.label.getAttribute('data-value')
@@ -221,6 +221,7 @@ class SnowTheme extends OriginSnowTheme {
         }
         return new IconPicker(select, icons.align as Record<string, string>)
       }
+
       if (select.classList.contains('ql-background') || select.classList.contains('ql-color')) {
         const format = select.classList.contains('ql-background') ? 'background' : 'color'
         if (isNullOrUndefined(select.querySelector('option'))) {
@@ -231,6 +232,7 @@ class SnowTheme extends OriginSnowTheme {
           closeAfterChange: false,
         })
       }
+
       if (isNullOrUndefined(select.querySelector('option'))) {
         if (select.classList.contains('ql-font')) {
           fillSelect(select, FONTS)
@@ -247,6 +249,7 @@ class SnowTheme extends OriginSnowTheme {
       }
       return new Picker(select)
     })
+
     const update = () => {
       this.pickers.forEach((picker) => {
         if (picker instanceof ColorPicker) return
@@ -277,6 +280,7 @@ function fillSelect(select, values, defaultValue = false) {
     select.appendChild(option)
   })
 }
+
 function fillColorSelect(
   select: HTMLSelectElement,
   values: Array<string | boolean>,
