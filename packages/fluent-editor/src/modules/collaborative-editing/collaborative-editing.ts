@@ -1,26 +1,35 @@
-import type FluentEditor from '../../fluent-editor'
+import type { UnifiedProvider } from './provider/customProvider'
 import type { YjsOptions } from './types'
+import QuillCursors from 'quill-cursors'
 import { Awareness } from 'y-protocols/awareness'
 import { QuillBinding } from 'y-quill'
 import * as Y from 'yjs'
-import { setupAwareness } from './awareness'
+import FluentEditor from '../../fluent-editor'
+import { bindAwarenessToCursors, setupAwareness } from './awareness'
 import { setupIndexedDB } from './awareness/y-indexeddb'
 import { createProvider } from './provider/customProvider'
 
 export class CollaborativeEditor {
   private ydoc: Y.Doc = new Y.Doc()
-  private provider: any
+  private provider: UnifiedProvider
   private awareness: Awareness
-  private cursors: any
+  private cursors: QuillCursors | null
   private _isConnected = false
   private _isSynced = false
+  private cleanupBindings: (() => void) | null = null
 
   constructor(
     public quill: FluentEditor,
-    private options: YjsOptions,
+    public options: YjsOptions,
   ) {
+    FluentEditor.register('modules/cursors', QuillCursors, true)
+
     this.ydoc = this.options.ydoc || new Y.Doc()
-    this.cursors = this.quill.getModule('cursors')
+
+    if (this.options.cursors !== false) {
+      const cursorsOptions = typeof this.options.cursors === 'object' ? this.options.cursors : {}
+      this.cursors = new QuillCursors(quill, cursorsOptions)
+    }
 
     if (this.options.awareness) {
       const awareness = setupAwareness(this.options.awareness, new Awareness(this.ydoc))
@@ -28,6 +37,7 @@ export class CollaborativeEditor {
         throw new Error('Failed to initialize awareness')
       }
       this.awareness = awareness
+      this.cleanupBindings = bindAwarenessToCursors(this.awareness, this.cursors, quill) || null
     }
     else {
       this.awareness = new Awareness(this.ydoc)
@@ -79,9 +89,8 @@ export class CollaborativeEditor {
       console.error('Failed to initialize collaborative editor: no valid provider configured')
     }
 
-    if (this.options.offline) {
+    if (this.options.offline !== false)
       setupIndexedDB(this.ydoc, typeof this.options.offline === 'object' ? this.options.offline : undefined)
-    }
   }
 
   public getAwareness() {
@@ -106,5 +115,13 @@ export class CollaborativeEditor {
 
   public getCursors() {
     return this.cursors
+  }
+
+  public destroy() {
+    this.cleanupBindings?.()
+    this.provider?.destroy?.()
+    this.cursors?.clearCursors()
+    this.awareness?.destroy?.()
+    this.ydoc?.destroy?.()
   }
 }

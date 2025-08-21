@@ -1,13 +1,8 @@
-import QuillCursors from 'quill-cursors'
-import FluentEditor from '../../fluent-editor'
+import type FluentEditor from '../../fluent-editor'
 import { CollaborativeEditor } from './collaborative-editing'
 
 export class CollaborationModule {
   private collaborativeEditor: CollaborativeEditor
-
-  static register() {
-    FluentEditor.register('modules/cursors', QuillCursors, true)
-  }
 
   constructor(public quill: FluentEditor, public options: any) {
     this.collaborativeEditor = new CollaborativeEditor(quill, options)
@@ -15,5 +10,9 @@ export class CollaborationModule {
 
   public getCursors() {
     return this.collaborativeEditor.getCursors()
+  }
+
+  public getAwareness() {
+    return this.collaborativeEditor.getAwareness()
   }
 }
