@@ -195,17 +195,16 @@ class SnowTheme extends OriginSnowTheme {
       }
 
       if (picker.select && picker.select.classList.contains('ql-header')) {
-        const select = picker.select as HTMLSelectElement
+        const getLabelKey = (v: string | null) => (v ? `header-${v}` : 'header-normal')
 
+        // 更新 label 文本
+        const labelValue = picker.label.getAttribute('data-value')
+        picker.label.setAttribute('data-label', this.quill.getLangText(getLabelKey(labelValue)))
+
+        const select = picker.select as HTMLSelectElement
         Array.from(select.options).forEach((option) => {
           const value = option.getAttribute('value')
-          const trText = this.quill.getLangText(value ? `h${value}` : 'normal')
-
-          if (option.getAttribute('selected')) {
-            picker.label.setAttribute('data-label', trText)
-          }
-
-          option.textContent = trText
+          option.textContent = this.quill.getLangText(getLabelKey(value))
         })
 
         picker.options.remove()
@@ -222,6 +221,7 @@ class SnowTheme extends OriginSnowTheme {
         }
         return new IconPicker(select, icons.align as Record<string, string>)
       }
+
       if (select.classList.contains('ql-background') || select.classList.contains('ql-color')) {
         const format = select.classList.contains('ql-background') ? 'background' : 'color'
         if (isNullOrUndefined(select.querySelector('option'))) {
@@ -232,6 +232,7 @@ class SnowTheme extends OriginSnowTheme {
           closeAfterChange: false,
         })
       }
+
       if (isNullOrUndefined(select.querySelector('option'))) {
         if (select.classList.contains('ql-font')) {
           fillSelect(select, FONTS)
@@ -248,6 +249,7 @@ class SnowTheme extends OriginSnowTheme {
       }
       return new Picker(select)
     })
+
     const update = () => {
       this.pickers.forEach((picker) => {
         if (picker instanceof ColorPicker) return
@@ -278,6 +280,7 @@ function fillSelect(select, values, defaultValue = false) {
     select.appendChild(option)
   })
 }
+
 function fillColorSelect(
   select: HTMLSelectElement,
   values: Array<string | boolean>,
