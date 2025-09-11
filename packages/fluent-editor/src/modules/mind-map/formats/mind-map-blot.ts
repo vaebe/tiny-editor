@@ -3,11 +3,12 @@ import type { BlockEmbed as TypeBlockEmbed } from 'quill/blots/block'
 import type FluentEditor from '../../../core/fluent-editor'
 import Quill from 'quill'
 import SimpleMindMap from 'simple-mind-map'
+import Themes from 'simple-mind-map-plugin-themes'
 import Drag from 'simple-mind-map/src/plugins/Drag.js'
 import Export from 'simple-mind-map/src/plugins/Export.js'
+import { getAllConfigs } from '../config-utils'
 import contractIcon from '../icons/contractIcon.png'
 import expandIcon from '../icons/expandIcon.png'
-import { MindMapModule } from '../index'
 import { initContextMenu } from '../modules/context-menu'
 import { createControlPanel } from '../modules/control-panel'
 import { MindMapResizeAction } from '../modules/custom-resize-action'
@@ -16,9 +17,10 @@ import '../style/mind-map.scss'
 const BlockEmbed = Quill.import('blots/embed') as typeof TypeBlockEmbed
 
 class MindMapPlaceholderBlot extends BlockEmbed {
-  static blotName = 'mind-map-placeholder'
+  static blotName = 'mind-map'
   static tagName = 'div'
   static className = 'ql-mind-map'
+  quill: Quill | null = null
   mindMap: SimpleMindMap | null = null
   data: any
   zoomCount = 0
@@ -28,7 +30,6 @@ class MindMapPlaceholderBlot extends BlockEmbed {
   height: number = 500
   parentObserver: MutationObserver | null = null
   nextPObserver: MutationObserver | null = null
-  quill: FluentEditor | null = null
 
   constructor(scroll: Root, domNode: HTMLElement) {
     super(scroll, domNode)
@@ -41,7 +42,6 @@ class MindMapPlaceholderBlot extends BlockEmbed {
     this.domNode.style.border = '1px solid #e8e8e8'
     this.domNode.setAttribute('contenteditable', 'false')
     this.data = MindMapPlaceholderBlot.value(domNode)
-    this.quill = MindMapModule.currentQuill as FluentEditor
     this.initMindMap()
   }
 
@@ -74,6 +74,21 @@ class MindMapPlaceholderBlot extends BlockEmbed {
     return node
   }
 
+  private static findQuill(el: HTMLElement): Quill | null {
+    let cur: HTMLElement | null = el
+    while (cur) {
+      const q = (cur as any).__quillInstance
+      if (q) return q
+      cur = cur.parentElement
+    }
+    return null
+  }
+
+  attach() {
+    super.attach()
+    this.quill = MindMapPlaceholderBlot.findQuill(this.domNode)
+  }
+
   initMindMap(): void {
     if (this.domNode.isConnected) {
       this.insertMindMapEditor()
@@ -97,14 +112,24 @@ class MindMapPlaceholderBlot extends BlockEmbed {
     }
     this.updateAlignmentStyle()
     this.observeParentAlignment()
+    const { backgroundConfig, resizeConfig, lineConfig, themeConfig } = getAllConfigs(this.quill)
+    Themes.init(SimpleMindMap)
     SimpleMindMap.usePlugin(Drag).usePlugin(Export)
     this.mindMap = new SimpleMindMap ({
       el: this.domNode,
       mousewheelAction: 'zoom',
       disableMouseWheelZoom: true,
       layout: this.data.layout,
+      theme: themeConfig,
       data: this.data.root ? this.data.root : this.data,
     } as any)
+
+    const styleConfig = { ...backgroundConfig }
+    if (lineConfig && typeof lineConfig === 'object') {
+      Object.assign(styleConfig, lineConfig)
+    }
+
+    this.mindMap.setThemeConfig(styleConfig)
 
     const handleScroll = () => {
       if (this.mindMap && this.domNode && this.domNode.isConnected) {
@@ -117,9 +142,12 @@ class MindMapPlaceholderBlot extends BlockEmbed {
     this.domNode.addEventListener('remove', () => {
       window.removeEventListener('scroll', handleScroll)
     })
-    new MindMapResizeAction(this)
-    createControlPanel(this, this.quill) // 创建控制面板
-    initContextMenu(this, this.quill) // 初始化右键菜单
+
+    if (resizeConfig) {
+      new MindMapResizeAction(this)
+    }
+    createControlPanel(this, this.quill as FluentEditor) // 创建控制面板
+    initContextMenu(this, this.quill as FluentEditor) // 初始化右键菜单
     this.observeOwnParentChange()
     this.observeNextPElement()
     this.addMouseHoverEvents()
@@ -130,6 +158,7 @@ class MindMapPlaceholderBlot extends BlockEmbed {
     this.mindMap.on('node_dblclick', this.handleNodeDblClick.bind(this))
     this.domNode.addEventListener('click', (e) => {
       if (this.quill) {
+        this.mindMap.getElRectInfo()
         const mindMapBlot = Quill.find(this.domNode)
         const index = this.quill.getIndex(mindMapBlot as MindMapPlaceholderBlot)
         if (index && typeof index === 'number') {
@@ -251,7 +280,7 @@ class MindMapPlaceholderBlot extends BlockEmbed {
       return
     }
     const trackedParentElement = parentElement
-    const parentElementId = parentElement.getAttribute('id') || `flow-chart-parent-${Date.now()}`
+    const parentElementId = parentElement.getAttribute('id') || `mind-map-parent-${Date.now()}`
     parentElement.setAttribute('id', parentElementId)
     const observer = new MutationObserver(() => {
       if (!document.contains(trackedParentElement)) {
@@ -366,7 +395,5 @@ class MindMapPlaceholderBlot extends BlockEmbed {
     super.remove()
   }
 }
-
-Quill.register(MindMapPlaceholderBlot)
 
 export default MindMapPlaceholderBlot

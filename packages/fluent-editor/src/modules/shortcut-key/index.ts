@@ -203,17 +203,11 @@ export class ShortCutKey extends QuillShortcutKey {
       },
       {
         type: 'item' as const,
-        name: 'sldt',
+        name: 'swdt',
         alias: ['mind-map'],
         icon: icons['mind-map'],
         title: this.quill.getLangText('mind-map'),
-        onClick(this: Quill, range: Range | null, _: any) {
-          if (!range) return
-          const MindMapModule = this.getModule('mind-map')
-          if (MindMapModule && typeof (MindMapModule as any).insertMindMapEditor === 'function') {
-            (MindMapModule as any).insertMindMapEditor()
-          }
-        },
+        onClick: toolbarHandler('mind-map'),
       },
       {
         type: 'item' as const,
