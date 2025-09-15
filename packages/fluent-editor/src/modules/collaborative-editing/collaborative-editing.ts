@@ -1,29 +1,26 @@
-import type { UnifiedProvider } from './provider/customProvider'
+import type FluentEditor from '../../fluent-editor'
+import type { UnifiedProvider } from './provider/providerRegistry'
 import type { YjsOptions } from './types'
 import QuillCursors from 'quill-cursors'
 import { Awareness } from 'y-protocols/awareness'
 import { QuillBinding } from 'y-quill'
 import * as Y from 'yjs'
-import FluentEditor from '../../fluent-editor'
 import { bindAwarenessToCursors, setupAwareness } from './awareness'
 import { setupIndexedDB } from './awareness/y-indexeddb'
-import { createProvider } from './provider/customProvider'
+import { createProvider } from './provider/providerRegistry'
 
 export class CollaborativeEditor {
   private ydoc: Y.Doc = new Y.Doc()
   private provider: UnifiedProvider
   private awareness: Awareness
   private cursors: QuillCursors | null
-  private _isConnected = false
-  private _isSynced = false
   private cleanupBindings: (() => void) | null = null
+  private clearIndexedDB: (() => void) | null = null
 
   constructor(
     public quill: FluentEditor,
     public options: YjsOptions,
   ) {
-    FluentEditor.register('modules/cursors', QuillCursors, true)
-
     this.ydoc = this.options.ydoc || new Y.Doc()
 
     if (this.options.cursors !== false) {
@@ -51,21 +48,10 @@ export class CollaborativeEditor {
           options: providerConfig.options,
           type: providerConfig.type,
           awareness: this.awareness,
-          onConnect: () => {
-            this._isConnected = true
-            this.options.onConnect?.()
-          },
-          onDisconnect: () => {
-            this._isConnected = false
-            this.options.onDisconnect?.()
-          },
-          onError: (error) => {
-            this.options.onError?.(error)
-          },
-          onSyncChange: (isSynced) => {
-            this._isSynced = isSynced
-            this.options.onSyncChange?.(isSynced)
-          },
+          onConnect: this.options.onConnect,
+          onDisconnect: this.options.onDisconnect,
+          onError: this.options.onError,
+          onSyncChange: this.options.onSyncChange,
         })
         this.provider = provider
       }
@@ -89,8 +75,9 @@ export class CollaborativeEditor {
       console.error('Failed to initialize collaborative editor: no valid provider configured')
     }
 
-    if (this.options.offline !== false)
-      setupIndexedDB(this.ydoc, typeof this.options.offline === 'object' ? this.options.offline : undefined)
+    if (this.options.offline !== false) {
+      this.clearIndexedDB = setupIndexedDB(this.ydoc)
+    }
   }
 
   public getAwareness() {
@@ -106,22 +93,23 @@ export class CollaborativeEditor {
   }
 
   get isConnected() {
-    return this._isConnected
+    return this.provider?.isConnected ?? false
   }
 
   get isSynced() {
-    return this._isSynced
+    return this.provider?.isSynced ?? false
   }
 
   public getCursors() {
     return this.cursors
   }
 
-  public destroy() {
+  public async destroy() {
     this.cleanupBindings?.()
     this.provider?.destroy?.()
     this.cursors?.clearCursors()
     this.awareness?.destroy?.()
+    this.clearIndexedDB?.()
     this.ydoc?.destroy?.()
   }
 }

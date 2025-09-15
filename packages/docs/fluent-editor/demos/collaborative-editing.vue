@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type FluentEditor from '@opentiny/fluent-editor'
+import type { Range } from '@opentiny/fluent-editor'
 import Html2Canvas from 'html2canvas'
 import katex from 'katex'
 import { onMounted, ref } from 'vue'
@@ -12,7 +13,6 @@ window.Html2Canvas = Html2Canvas
 
 let editor: FluentEditor
 const editorRef = ref<HTMLElement>()
-
 const TOOLBAR_CONFIG = [
   ['undo', 'redo', 'format-painter', 'clean'],
   [
@@ -39,6 +39,14 @@ const TOOLBAR_CONFIG = [
 
 const ROOM_NAME = `tiny-editor-document-demo-roomName`
 
+const CURSOR_CLASSES = {
+  SELECTION_CLASS: 'ql-cursor-selections',
+  CARET_CONTAINER_CLASS: 'ql-cursor-caret-container',
+  CARET_CLASS: 'ql-cursor-caret',
+  FLAG_CLASS: 'ql-cursor-flag',
+  NAME_CLASS: 'ql-cursor-name',
+}
+
 onMounted(() => {
   Promise.all([
     import('@opentiny/fluent-editor'),
@@ -60,12 +68,22 @@ onMounted(() => {
         true,
       )
 
+      const Delta = FluentEditor.import('delta')
       editor = new FluentEditor(editorRef.value, {
         theme: 'snow',
         modules: {
           'toolbar': TOOLBAR_CONFIG,
           'file': true,
           'emoji': true,
+          'uploader': {
+            mimetypes: ['image/*'],
+            handler(range: Range, files: File[]) {
+              return files.map((_, i) => i % 2 === 0 ? false : 'https://developer.mozilla.org/static/media/chrome.5e791c51c323fbb93c31.svg')
+            },
+            fail(file: File, range: Range) {
+              this.quill.updateContents(new Delta().retain(range.index).delete(1).insert({ image: 'https://developer.mozilla.org/static/media/edge.741dffaf92fcae238b84.svg' }))
+            },
+          },
           'table-up': {
             customSelect: defaultCustomSelect,
             selection: TableSelection,
@@ -83,11 +101,21 @@ onMounted(() => {
             },
             awareness: {
               state: {
-                color: '#ff6b6b',
+                name: `userId:${Math.random().toString(36).substring(2, 15)}`,
+                color: `rgb(${Math.floor(Math.random() * 255)},${Math.floor(Math.random() * 255)},${Math.floor(Math.random() * 255)})`,
               },
             },
             cursors: {
-              hideDelayMs: 300,
+              template: `
+                  <span class="${CURSOR_CLASSES.SELECTION_CLASS}"></span>
+                  <span class="${CURSOR_CLASSES.CARET_CONTAINER_CLASS}">
+                    <span class="${CURSOR_CLASSES.CARET_CLASS}"></span>
+                  </span>
+                  <div class="${CURSOR_CLASSES.FLAG_CLASS}">
+                    <small class="${CURSOR_CLASSES.NAME_CLASS}"></small>
+                  </div>
+              `,
+              hideDelayMs: 500,
               hideSpeedMs: 300,
               selectionChangeSource: null,
               transformOnTextChange: true,
@@ -102,11 +130,22 @@ onMounted(() => {
 
 <template>
   <div>
-    <div>
-      <div ref="editorRef" class="editor" />
-    </div>
+    <div id="editor" ref="editorRef" />
   </div>
 </template>
 
-<style scoped>
+<style lang="scss">
+.ql-editor {
+  padding-top: 28px !important;
+}
+.ql-cursor-flag {
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  z-index: 9999 !important;
+}
+.ql-cursor-name {
+  color: white !important;
+  font-size: 20px;
+}
 </style>
