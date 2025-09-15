@@ -1,4 +1,4 @@
-import { type Browser, chromium, expect, type Page, test } from '@playwright/test'
+import { type Browser, chromium, expect, firefox, type Page, test } from '@playwright/test'
 
 const DEMO_URL = 'http://localhost:5173/tiny-editor/docs/demo/collaborative-editing'
 
@@ -6,7 +6,7 @@ test.describe.configure({ mode: 'serial' })
 
 async function openTwoPages(): Promise<[Page, Page, Browser, Browser]> {
   const browser1 = await chromium.launch()
-  const browser2 = await chromium.launch()
+  const browser2 = await firefox.launch()
 
   const page1 = await browser1.newPage()
   const page2 = await browser2.newPage()
@@ -141,7 +141,6 @@ test('size collaborative-editing test', async () => {
   }
 })
 
-// serif
 test('font collaborative-editing test', async () => {
   await typeSync(p1, p2, 'font')
   await p1.locator('.ql-editor').click()
@@ -295,4 +294,23 @@ test('table-up collaborative-editing test', async () => {
 test('fullscreen collaborative-editing test', async () => {
   await p1.getByLabel('fullscreen').click({ force: true })
   await expect(p1.getByLabel('fullscreen')).toBeVisible()
+})
+
+test('edit conflict simultaneously test', async () => {
+  await Promise.all([
+    p1.locator('.ql-editor').click(),
+    p2.locator('.ql-editor').click(),
+  ])
+  await Promise.all([
+    p1.keyboard.type('A'),
+    p2.keyboard.type('B'),
+  ])
+  await expect.poll(async () => {
+    const text1 = await p1.locator('.ql-editor').textContent()
+    const text2 = await p2.locator('.ql-editor').textContent()
+    if (text1 === text2 && (text1 === 'AB' || text1 === 'BA')) {
+      return true
+    }
+    return false
+  }).toBeTruthy()
 })
