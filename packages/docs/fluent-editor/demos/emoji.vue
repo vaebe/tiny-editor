@@ -21,9 +21,9 @@ onMounted(async () => {
   // ssr compat, reference: https://vitepress.dev/guide/ssr-compat#importing-in-mounted-hook
   const [fluentEditor, emojiMart] = await Promise.all([
     import('@opentiny/fluent-editor'),
-    import('emoji-mart')
+    import('emoji-mart'),
   ])
-  
+
   const FluentEditor = fluentEditor.default
 
   editor = new FluentEditor('#editor', {
