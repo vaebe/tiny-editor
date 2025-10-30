@@ -57,14 +57,15 @@ GC=true
 ```
 
 可参照下方表格进行配置 `.env` 文件
-| 变量名 | 必需 | 默认值 | 说明 |
-| -------------------- | ---- | ------ | -------------------------------------------------------------- |
-| `HOST` | ✅ | - | 服务器监听地址 |
-| `PORT` | ✅ | - | WebSocket 服务端口 |
-| `MONGODB_URL` | ✅ | - | MongoDB 连接字符串 |
-| `MONGODB_DB` | ✅ | - | MongoDB 数据库名称 |
-| `MONGODB_COLLECTION` | ✅ | - | MongoDB 集合名称 |
-| `GC` | ❌ | `true` | 是否启用 Yjs 垃圾回收 |
+
+| 变量名               | 必需 | 默认值 | 说明                  |
+| -------------------- | ---- | ------ | --------------------- |
+| `HOST`               | ✅   | -      | 服务器监听地址        |
+| `PORT`               | ✅   | -      | WebSocket 服务端口    |
+| `MONGODB_URL`        | ✅   | -      | MongoDB 连接字符串    |
+| `MONGODB_DB`         | ✅   | -      | MongoDB 数据库名称    |
+| `MONGODB_COLLECTION` | ✅   | -      | MongoDB 集合名称      |
+| `GC`                 | ❌   | `true` | 是否启用 Yjs 垃圾回收 |
 
 4. 在项目根目录下运行 `docker-compose` 启动容器：
 

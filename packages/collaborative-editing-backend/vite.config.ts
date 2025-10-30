@@ -1,8 +1,10 @@
 import path from 'node:path'
 import { globSync } from 'glob'
 import { defineConfig } from 'vite'
+import dts from 'vite-plugin-dts'
 
 export default defineConfig({
+  plugins: [dts({ outDir: 'dist/types', root: '.' })],
   build: {
     ssr: true,
     outDir: 'dist',
