@@ -1,17 +1,9 @@
 import type { Root } from 'parchment'
 import type { BlockEmbed as TypeBlockEmbed } from 'quill/blots/block'
 import type FluentEditor from '../../../core/fluent-editor'
-import LogicFlow from '@logicflow/core'
-import { DndPanel, SelectionSelect, Snapshot } from '@logicflow/extension'
 import Quill from 'quill'
 import { getAllConfigs } from '../config-utils'
-import circleIcon from '../icons/circleIcon.png'
-import contractIcon from '../icons/contractIcon.png'
-import diamondIcon from '../icons/diamondIcon.png'
-import ellipseIcon from '../icons/ellipseIcon.png'
-import expandIcon from '../icons/expandIcon.png'
-import rectangleIcon from '../icons/rectangleIcon.png'
-import selectRegionIcon from '../icons/selectRegionIcon.png'
+import { contractIcon, expandIcon } from '../icons'
 import { initContextMenu } from '../modules/context-menu'
 import { createControlPanel } from '../modules/control-panel'
 import { FlowChartResizeAction } from '../modules/custom-resize-action'
@@ -23,7 +15,7 @@ class FlowChartPlaceholderBlot extends BlockEmbed {
   static tagName = 'div'
   static className = 'ql-flow-chart-item'
   quill: Quill | null = null
-  flowChart: LogicFlow | null = null
+  flowChart: any | null = null
   data: any
   contextMenu: HTMLElement | null = null
   currentElement: any = null
@@ -110,7 +102,8 @@ class FlowChartPlaceholderBlot extends BlockEmbed {
     this.domNode.style.height = `${this.height}px`
     this.updateAlignmentStyle()
     this.observeParentAlignment()
-    const { gridConfig, backgroundConfig, resizeConfig } = getAllConfigs(this.quill)
+    const { gridConfig, backgroundConfig, resizeConfig, deps } = getAllConfigs(this.quill)
+    const { LogicFlow, DndPanel, SelectionSelect, Snapshot } = deps || window as any
     this.flowChart = new LogicFlow({
       container: this.domNode,
       stopScrollGraph: true,
@@ -126,7 +119,7 @@ class FlowChartPlaceholderBlot extends BlockEmbed {
     })
     this.flowChart.setPatternItems([
       {
-        icon: selectRegionIcon,
+        className: 'lf-shape-dashed',
         callback: () => {
           this.flowChart.openSelectionSelect()
           this.flowChart.once('selection:selected', () => {
@@ -137,22 +130,22 @@ class FlowChartPlaceholderBlot extends BlockEmbed {
       {
         type: 'rect',
         text: '矩形',
-        icon: rectangleIcon,
+        className: 'lf-shape-rect',
       },
       {
         type: 'circle',
         text: '圆形',
-        icon: circleIcon,
+        className: 'lf-shape-circle',
       },
       {
         type: 'ellipse',
         text: '椭圆',
-        icon: ellipseIcon,
+        className: 'lf-shape-ellipse',
       },
       {
         type: 'diamond',
         text: '菱形',
-        icon: diamondIcon,
+        className: 'lf-shape-diamond',
       },
     ])
     if (resizeConfig) {
@@ -199,7 +192,7 @@ class FlowChartPlaceholderBlot extends BlockEmbed {
   getControlElements(): { leftUpControl: HTMLElement | null, control: HTMLElement | null, panelStatusIcon: HTMLElement | null } {
     const leftUpControl = this.domNode.querySelector('.lf-dndpanel') as HTMLElement | null
     const control = this.domNode.querySelector('.ql-flow-chart-control') as HTMLElement | null
-    const panelStatusIcon = this.domNode.querySelector('.ql-flow-chart-control-panel-status') as HTMLElement | null
+    const panelStatusIcon = this.domNode.querySelector('[data-control-type="panel-status"]') as HTMLElement | null
     return { leftUpControl, control, panelStatusIcon }
   }
 
@@ -210,7 +203,8 @@ class FlowChartPlaceholderBlot extends BlockEmbed {
     leftUpControl.style.display = 'block'
     control.style.display = 'flex'
     if (panelStatusIcon) {
-      panelStatusIcon.style.backgroundImage = `url(${expandIcon})`
+      const iconElement = panelStatusIcon.querySelector('i') || panelStatusIcon
+      iconElement.innerHTML = expandIcon
     }
   }
 
@@ -221,7 +215,8 @@ class FlowChartPlaceholderBlot extends BlockEmbed {
     leftUpControl.style.display = 'none'
     control.style.display = 'none'
     if (panelStatusIcon) {
-      panelStatusIcon.style.backgroundImage = `url(${contractIcon})`
+      const iconElement = panelStatusIcon.querySelector('i') || panelStatusIcon
+      iconElement.innerHTML = contractIcon
     }
   }
 

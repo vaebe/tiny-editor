@@ -23,7 +23,6 @@
   position: absolute;
   top: 8px;
   right: 50px;
-  padding: 0 15px;
   display: none;
   gap: 6px;
   white-space: nowrap;
@@ -122,27 +121,47 @@
   }
 }
 
-.ql-flow-chart-control-zoom-out {
-  background-image: url('../icons/zoomOutIcon.png');
+.lf-shape-dashed {
+  margin: 10px auto 0px auto;
+  width: 20px;
+  height: 20px;
+  background-color: transparent;
+  border: 1.5px dashed #000;
+  border-radius: 2px;
 }
-.ql-flow-chart-control-zoom-in {
-  background-image: url('../icons/zoomInIcon.png');
+
+.lf-shape-rect {
+  margin: 10px auto 0px auto;
+  width: 20px;
+  height: 20px;
+  background-color: transparent;
+  border: 1.5px solid #000;
+  border-radius: 2px;
 }
-.ql-flow-chart-control-fit {
-  background-image: url('../icons/fitIcon.png');
+
+.lf-shape-circle {
+  margin: 10px auto 0px auto;
+  width: 20px;
+  height: 20px;
+  background-color: transparent;
+  border: 1.5px solid #000;
+  border-radius: 50%;
 }
-.ql-flow-chart-control-back {
-  background-image: url('../icons/backIcon.png');
+
+.lf-shape-ellipse {
+  margin: 10px auto 0px 3px;
+  width: 26px;
+  height: 20px;
+  background-color: transparent;
+  border: 1.5px solid #000;
+  border-radius: 50%;
 }
-.ql-flow-chart-control-forward {
-  background-image: url('../icons/forwardIcon.png');
-}
-.ql-flow-chart-control-set-edge-type {
-  background-image: url('../icons/lineIcon.png');
-}
-.ql-flow-chart-control-panel-status {
-  background-image: url('../icons/contractIcon.png');
-}
-.ql-flow-chart-control-screen-type {
-  background-image: url('../icons/fullScreenIcon.png');
+
+.lf-shape-diamond {
+  margin: 10px auto 10px auto;
+  width: 20px;
+  height: 20px;
+  background-color: transparent;
+  border: 1.5px solid #000;
+  transform: rotate(45deg);
 }

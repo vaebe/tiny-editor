@@ -6,7 +6,7 @@ test.describe('FlowChart.vue', () => {
   })
 
   test('should render the editor', async ({ page }) => {
-    const editor = page.locator('.ql-editor')
+    const editor = page.locator('.ql-editor').first()
     await expect(editor).toBeVisible()
   })
 
@@ -19,7 +19,7 @@ test.describe('FlowChart.vue', () => {
   })
 
   test('should initialize editor with flow chart content', async ({ page }) => {
-    const editor = page.locator('.ql-editor')
+    const editor = page.locator('.ql-editor').first()
     await expect(editor).toBeVisible()
 
     await page.waitForTimeout(1000)
@@ -49,7 +49,7 @@ test.describe('FlowChart.vue', () => {
 
     await page.waitForTimeout(500)
 
-    const editor = page.locator('.ql-editor')
+    const editor = page.locator('.ql-editor').first()
     await expect(editor).toBeVisible()
   })
 })
