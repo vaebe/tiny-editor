@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import type FluentEditor from '@opentiny/fluent-editor'
-import LogicFlow from '@logicflow/core'
-import { DndPanel, SelectionSelect, Snapshot } from '@logicflow/extension'
 import { onMounted, ref } from 'vue'
 import '@logicflow/core/lib/style/index.css'
 import '@logicflow/extension/lib/style/index.css'
@@ -18,7 +16,16 @@ const TOOLBAR_CONFIG = [
 ]
 
 onMounted(() => {
-  import('@opentiny/fluent-editor').then(({ default: FluentEditor }) => {
+  Promise.all([
+    import('@opentiny/fluent-editor'),
+    import('@logicflow/core'),
+    import('@logicflow/extension'),
+  ]).then(
+    ([
+      { default: FluentEditor },
+      { default: LogicFlow },
+      { DndPanel, SelectionSelect, Snapshot },
+    ]) => {
     if (!editorRef.value) return
     editor = new FluentEditor(editorRef.value, {
       theme: 'snow',

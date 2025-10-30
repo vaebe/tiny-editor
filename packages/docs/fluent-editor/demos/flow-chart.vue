@@ -18,25 +18,35 @@ const TOOLBAR_CONFIG = [
 ]
 
 onMounted(() => {
-  import('@opentiny/fluent-editor').then(({ default: FluentEditor }) => {
-    if (!editorRef.value) return
-    editor = new FluentEditor(editorRef.value, {
-      theme: 'snow',
-      modules: {
-        'toolbar': TOOLBAR_CONFIG,
-        'flow-chart': {
-          deps: {
-            LogicFlow,
-            DndPanel,
-            SelectionSelect,
-            Snapshot,
+    Promise.all([
+    import('@opentiny/fluent-editor'),
+    import('@logicflow/core'),
+    import('@logicflow/extension'),
+  ]).then(
+    ([
+      { default: FluentEditor },
+      { default: LogicFlow },
+      { DndPanel, SelectionSelect, Snapshot },
+    ]) => {
+      if (!editorRef.value) return
+      editor = new FluentEditor(editorRef.value, {
+        theme: 'snow',
+        modules: {
+          'toolbar': TOOLBAR_CONFIG,
+          'flow-chart': {
+            deps: {
+              LogicFlow,
+              DndPanel,
+              SelectionSelect,
+              Snapshot,
+            },
           },
         },
-      },
-    })
-    const ops = [{ insert: '\n' }, { insert: { 'flow-chart': { nodes: [{ id: 'node1', type: 'rect', x: 100, y: 150, text: '开始' }, { id: 'node2', type: 'rect', x: 300, y: 150, text: '结束' }], edges: [{ id: 'edge1', sourceNodeId: 'node1', targetNodeId: 'node2', type: 'polyline' }] } } }, { insert: '\n\n' }]
-    editor.setContents(ops)
-  })
+      })
+      const ops = [{ insert: '\n' }, { insert: { 'flow-chart': { nodes: [{ id: 'node1', type: 'rect', x: 100, y: 150, text: '开始' }, { id: 'node2', type: 'rect', x: 300, y: 150, text: '结束' }], edges: [{ id: 'edge1', sourceNodeId: 'node1', targetNodeId: 'node2', type: 'polyline' }] } } }, { insert: '\n\n' }]
+      editor.setContents(ops)
+    }
+  )
 })
 </script>
 

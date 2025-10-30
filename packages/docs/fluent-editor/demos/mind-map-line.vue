@@ -1,9 +1,5 @@
 <script setup lang="ts">
 import type FluentEditor from '@opentiny/fluent-editor'
-import SimpleMindMap from 'simple-mind-map'
-import Themes from 'simple-mind-map-plugin-themes'
-import Drag from 'simple-mind-map/src/plugins/Drag.js'
-import Export from 'simple-mind-map/src/plugins/Export.js'
 import { onMounted, ref } from 'vue'
 
 let editor: FluentEditor
@@ -18,7 +14,20 @@ const TOOLBAR_CONFIG = [
 ]
 
 onMounted(() => {
-  import('@opentiny/fluent-editor').then(({ default: FluentEditor }) => {
+  Promise.all([
+    import('@opentiny/fluent-editor'),
+    import('simple-mind-map'),
+    import('simple-mind-map/src/plugins/Drag.js'),
+    import('simple-mind-map/src/plugins/Export.js'),
+    import('simple-mind-map-plugin-themes'),
+  ]).then(
+    ([
+      { default: FluentEditor },
+      { default: SimpleMindMap },
+      { default: Drag },
+      { default: Export },
+      { default: Themes },
+    ]) => {
     if (!editorRef.value) return
     editor = new FluentEditor(editorRef.value, {
       theme: 'snow',

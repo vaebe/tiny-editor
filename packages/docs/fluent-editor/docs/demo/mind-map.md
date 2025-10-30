@@ -3,7 +3,7 @@
 TinyEditor 的思维导图功能依赖 `SimpleMindMap` ，使用前请先安装 `SimpleMindMap` 相关依赖。
 
 ```bash
-npm install simple-mind-map
+npm install simple-mind-map simple-mind-map-plugin-themes
 ```
 
 ## 功能说明
