@@ -2,13 +2,8 @@ import type { Root } from 'parchment'
 import type { BlockEmbed as TypeBlockEmbed } from 'quill/blots/block'
 import type FluentEditor from '../../../core/fluent-editor'
 import Quill from 'quill'
-import SimpleMindMap from 'simple-mind-map'
-import Themes from 'simple-mind-map-plugin-themes'
-import Drag from 'simple-mind-map/src/plugins/Drag.js'
-import Export from 'simple-mind-map/src/plugins/Export.js'
 import { getAllConfigs } from '../config-utils'
-import contractIcon from '../icons/contractIcon.png'
-import expandIcon from '../icons/expandIcon.png'
+import { contractIcon, expandIcon } from '../icons'
 import { initContextMenu } from '../modules/context-menu'
 import { createControlPanel } from '../modules/control-panel'
 import { MindMapResizeAction } from '../modules/custom-resize-action'
@@ -21,7 +16,7 @@ class MindMapPlaceholderBlot extends BlockEmbed {
   static tagName = 'div'
   static className = 'ql-mind-map-item'
   quill: Quill | null = null
-  mindMap: SimpleMindMap | null = null
+  mindMap: any | null = null
   data: any
   zoomCount = 0
   contextMenu: HTMLElement | null = null
@@ -112,7 +107,8 @@ class MindMapPlaceholderBlot extends BlockEmbed {
     }
     this.updateAlignmentStyle()
     this.observeParentAlignment()
-    const { backgroundConfig, resizeConfig, lineConfig, themeConfig } = getAllConfigs(this.quill)
+    const { backgroundConfig, resizeConfig, lineConfig, themeConfig, deps } = getAllConfigs(this.quill)
+    const { SimpleMindMap, Themes, Drag, Export } = deps || window as any
     Themes.init(SimpleMindMap)
     SimpleMindMap.usePlugin(Drag).usePlugin(Export)
     this.mindMap = new SimpleMindMap ({
@@ -182,7 +178,7 @@ class MindMapPlaceholderBlot extends BlockEmbed {
   getControlElements(): { leftUpControl: HTMLElement | null, control: HTMLElement | null, panelStatusIcon: HTMLElement | null } {
     const leftUpControl = this.domNode.querySelector('.ql-mind-map-left-up-control') as HTMLElement | null
     const control = this.domNode.querySelector('.ql-mind-map-control') as HTMLElement | null
-    const panelStatusIcon = this.domNode.querySelector('.ql-mind-map-control-panel-status') as HTMLElement | null
+    const panelStatusIcon = this.domNode.querySelector('[data-control-type="panel-status"]') as HTMLElement | null
     return { leftUpControl, control, panelStatusIcon }
   }
 
@@ -193,7 +189,8 @@ class MindMapPlaceholderBlot extends BlockEmbed {
     leftUpControl.style.display = 'inline-flex'
     control.style.display = 'flex'
     if (panelStatusIcon) {
-      panelStatusIcon.style.backgroundImage = `url(${expandIcon})`
+      const iconElement = panelStatusIcon.querySelector('i') || panelStatusIcon
+      iconElement.innerHTML = expandIcon
     }
   }
 
@@ -204,7 +201,8 @@ class MindMapPlaceholderBlot extends BlockEmbed {
     leftUpControl.style.display = 'none'
     control.style.display = 'none'
     if (panelStatusIcon) {
-      panelStatusIcon.style.backgroundImage = `url(${contractIcon})`
+      const iconElement = panelStatusIcon.querySelector('i') || panelStatusIcon
+      iconElement.innerHTML = contractIcon
     }
   }
 

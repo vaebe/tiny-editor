@@ -1,5 +1,9 @@
 <script setup lang="ts">
 import type FluentEditor from '@opentiny/fluent-editor'
+import SimpleMindMap from 'simple-mind-map'
+import Themes from 'simple-mind-map-plugin-themes'
+import Drag from 'simple-mind-map/src/plugins/Drag.js'
+import Export from 'simple-mind-map/src/plugins/Export.js'
 import { onMounted, ref } from 'vue'
 
 let editor: FluentEditor
@@ -21,6 +25,12 @@ onMounted(() => {
       modules: {
         'toolbar': TOOLBAR_CONFIG,
         'mind-map': {
+          deps: {
+            SimpleMindMap,
+            Themes,
+            Drag,
+            Export,
+          },
           theme: 'minions',
         },
       },
