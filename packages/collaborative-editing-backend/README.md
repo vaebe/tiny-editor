@@ -2,19 +2,11 @@
 
 基于 Yjs 和 WebSocket 的实时协同编辑后端服务，支持多用户实时协作编辑，使用 MongoDB 进行文档持久化。
 
-## 快速开始
+提供以下两种集成方式
 
-### 环境变量配置
+## Docker Compose 一键启动(推荐)
 
-### Docker 容器化部署(推荐)
-
-1. 拉取 Docker 镜像，使用 Docker Compose 一键启动：
-
-```bash
-docker pull yinlin124/collaborative-editor-backend:latest
-```
-
-2. 创建 `docker-compose.yml` 文件，内容如下：
+创建 `docker-compose.yml` 文件，内容如下：
 
 ```yaml
 services:
@@ -26,7 +18,7 @@ services:
       - '27017:27017'
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: admin!123
+      MONGO_INITDB_ROOT_PASSWORD: admin
     volumes:
       - mongodb_data:/data/db
 
@@ -36,8 +28,12 @@ services:
     restart: always
     ports:
       - '${PORT:-1234}:${PORT:-1234}'
-    env_file:
-      - .env
+    environment:
+      HOST: ${HOST:-0.0.0.0} # 设置后端监听的网络接口
+      PORT: ${PORT:-1234} # 默认 1234 端口，可以使用环境变量修改
+      MONGODB_URL: ${MONGODB_URL:-mongodb://admin:admin@mongodb:27017/?authSource=admin}
+      MONGODB_DB: ${MONGODB_DB:-tinyeditor} # 数据库名称
+      MONGODB_COLLECTION: ${MONGODB_COLLECTION:-documents} # 集合名称
     depends_on:
       - mongodb
 
@@ -45,102 +41,68 @@ volumes:
   mongodb_data:
 ```
 
-3. 在项目根目录下新建 `.env` 文件：
+执行 `docker compose up` 启动容器，连接地址为 `wss://你的域名or服务器ip:1234`
 
-```env
-HOST=0.0.0.0
-PORT=1234
-MONGODB_URL=mongodb://admin:admin!123@mongodb:27017/?authSource=admin
-MONGODB_DB=tinyeditor
-MONGODB_COLLECTION=documents
-GC=true
-```
+> 如果你没有开启 https 则需要将 wss 替换 ws
 
-可参照下方表格进行配置 `.env` 文件
+## 通过 NPM 包集成
 
-| 变量名               | 必需 | 默认值 | 说明                  |
-| -------------------- | ---- | ------ | --------------------- |
-| `HOST`               | ✅   | -      | 服务器监听地址        |
-| `PORT`               | ✅   | -      | WebSocket 服务端口    |
-| `MONGODB_URL`        | ✅   | -      | MongoDB 连接字符串    |
-| `MONGODB_DB`         | ✅   | -      | MongoDB 数据库名称    |
-| `MONGODB_COLLECTION` | ✅   | -      | MongoDB 集合名称      |
-| `GC`                 | ❌   | `true` | 是否启用 Yjs 垃圾回收 |
+参考 [tiny-editor-collaborative-editor-backend-demo](https://github.com/vaebe/tiny-editor-collaborative-editor-backend-demo) 进行集成
 
-4. 在项目根目录下运行 `docker-compose` 启动容器：
+## 开发指南
 
-```bash
-docker compose up
-```
+### mongodb
 
-### 本地部署
+项目依赖 Mongo 数据库来持久化数据。如果您已有可用的 Mongo 数据库，可以跳过此节。
 
-启动 mongodb
+通过 docker 启动 Mongo 数据库
 
 ```bash
 docker run -d \
   --name mongodb \
   -p 27017:27017 \
   -e MONGO_INITDB_ROOT_USERNAME=admin \
-  -e MONGO_INITDB_ROOT_PASSWORD="admin!123" \
+  -e MONGO_INITDB_ROOT_PASSWORD=admin \
   -v mongodb_data:/data/db \
   mongo:latest
 ```
 
-修改 `.env MongoDB URL`
+**修改 `.env`文件 `MONGODB_URL` 为正确的连接地址**，通过上述 docker 命令启动的服务修改为如下内容即可
 
 ```bash
-MONGODB_URL=mongodb://admin:admin!123@localhost:27017/?authSource=admin
+MONGODB_URL=mongodb://admin:admin@localhost:27017/?authSource=admin
 ```
 
-启动本地服务器
+### scripts 命令解析
+
+- 本地开发执行 `pnpm dev` 启动项目
+- 执行 `pnpm build` 打包项目
+- 执行 `pnpm pub` 发布 npm 包（需要先确认版本号）
+- 执行 `docker build -t collaborative-editing-backend:latest .` 打包 docker 镜像
+
+### 构建 docker 镜像
+
+构建 `linux/amd64,linux/arm64` 并推送 docker hub
 
 ```bash
-npm install -g pm2
-npm install
-npm start
+docker buildx build --platform linux/amd64,linux/arm64 -t 你的dockerhub名字/collaborative-editor-backend:latest . --push
 ```
-
-## 前端配置
-
-(非完整前端配置主要参考 provider 部分)
-
-```javascript
-import TinyEditor from '@opentiny/fluent-editor'
-
-const editor = new TinyEditor('#editor', {
-  theme: 'snow',
-  modules: {
-    collaboration: {
-      provider: {
-        type: 'websocket',
-        options: {
-          serverUrl: 'ws://localhost:1234',
-          roomName: 'my-document',
-        },
-      },
-    },
-  },
-})
-```
-
-## 开发指南
 
 ### MongoDB 持久化拓展
 
-当前项目在 [`src/persistence/mongo.ts`](./src/persistence/mongo.ts) 类实现 MongoDB 持久化，基于 [`y-mongodb-provider`](https://github.com/MaxNoetzold/y-mongodb-provider) 库。
+项目在 [`src/persistence/mongo.ts`](./src/persistence/mongo.ts) 类基于 [`y-mongodb-provider`](https://github.com/MaxNoetzold/y-mongodb-provider) 库 实现 MongoDB 持久化。
 
-需要拓展当前持久化能力时，可参考 API 文档：[y-mongodb-provider API](https://github.com/MaxNoetzold/y-mongodb-provider?tab=readme-ov-file#api)
+可参考 API 文档：[y-mongodb-provider API](https://github.com/MaxNoetzold/y-mongodb-provider?tab=readme-ov-file#api) 进行拓展。
 
 ### 自定义持久化接口
 
 要支持其他数据库（如 PostgreSQL、Redis 等），需要实现 `Persistence` 接口
 
-| 方法名       | 参数                              | 返回值          | 说明                                         |
-| ------------ | --------------------------------- | --------------- | -------------------------------------------- |
-| `bindState`  | `docName: string`<br>`doc: Y.Doc` | `Promise<void>` | 文档初始化时调用，加载历史状态并设置实时同步 |
-| `writeState` | `docName: string`<br>`doc: Y.Doc` | `Promise<void>` | 手动保存文档状态（可选使用）                 |
-| `close`      | -                                 | `Promise<void>` | 服务器关闭时调用，清理资源                   |
+| 方法名       | 参数                            | 返回值          | 说明                                         |
+| ------------ | ------------------------------- | --------------- | -------------------------------------------- |
+| `bindState`  | `docName: string`, `doc: Y.Doc` | `Promise<void>` | 文档初始化时调用，加载历史状态并设置实时同步 |
+| `writeState` | `docName: string`, `doc: Y.Doc` | `Promise<void>` | 手动保存文档状态（可选使用）                 |
+| `close`      | -                               | `Promise<void>` | 服务器关闭时调用，清理资源                   |
 
 ### 更多社区持久化支持
 
