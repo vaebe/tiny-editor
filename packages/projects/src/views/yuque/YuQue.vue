@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import FluentEditor, { generateTableUp, generateTableUpShortKeyMenu } from '@opentiny/fluent-editor'
+import FluentEditor, { CollaborationModule, generateTableUp, generateTableUpShortKeyMenu } from '@opentiny/fluent-editor'
 import HeaderList from 'quill-header-list'
 import { createSelectBox, defaultCustomSelect, TableMenuContextmenu, TableResizeLine, TableResizeScale, TableSelection, TableUp } from 'quill-table-up'
 import { onMounted, ref } from 'vue'
 
 FluentEditor.register({ 'modules/header-list': HeaderList }, true)
 FluentEditor.register({ 'modules/table-up': generateTableUp(TableUp) }, true)
+FluentEditor.register('modules/collaborative-editing', CollaborationModule, true)
 
 const { tableUpConfig, tableUpKeyboardControl } = generateTableUpShortKeyMenu(createSelectBox)
 tableUpConfig.title = '_i18n"table"'
@@ -14,6 +15,64 @@ let editor: FluentEditor
 const headerListRef = ref<HTMLElement>()
 
 const title = ref('测试文档')
+
+const ROOM_NAME = 'yuque-document-demo-room'
+
+const DEFAULT_CONTENT = `
+<p>
+  这是一篇<a
+    class="ql-normal-link"
+    href="https://opentiny.github.io/tiny-editor/"
+    target="_blank"
+  >测试文档</a>
+</p>
+<p>这是<strong>粗体</strong></p>
+<p>这是<em>斜体</em></p>
+<p>这是<u class="ql-custom-strike">删除线</u></p>
+<p>这是<u>下划线</u></p>
+<p>这是上标X<sup>2</sup>和下标X<sub>2</sub></p>
+<p>
+  这是<span style="color: rgb(223, 42, 63)">文本色</span>和<span
+    style="background-color: rgb(116, 182, 2)"
+  >背景色</span>
+</p>
+<ol class="unchecked">
+  <li class="bullet">
+    <span class="ql-ui" contenteditable="false" />这是一个无序列表
+  </li>
+  <li class="bullet">
+    <span class="ql-ui" contenteditable="false" />这是一个无序列表
+  </li>
+  <li class="ordered">
+    <span class="ql-ui" contenteditable="false" />这是一个有序列表
+  </li>
+  <li class="ordered">
+    <span class="ql-ui" contenteditable="false" />这是一个有序列表
+  </li>
+  <li class="unchecked">
+    <span class="ql-ui" contenteditable="false" />这是一个任务项
+  </li>
+  <li class="unchecked">
+    <span class="ql-ui" contenteditable="false" />这是一个任务项
+  </li>
+</ol>
+<blockquote>这是一段引用</blockquote>
+<blockquote>这是一段引用</blockquote>
+<p>
+  这是一段<code style="background-color: rgba(0, 0, 0, 0.06)">行内代码</code>。
+</p>
+<hr contenteditable="false">
+<h1><span style="line-height: 36px">标题1</span></h1>
+<h2><span style="line-height: 32px">标题2</span></h2>
+<h3><span style="line-height: 28px">标题3</span></h3>
+<h4><span style="line-height: 24px">标题4</span></h4>
+<h5><span style="line-height: 24px">标题5</span></h5>
+<h6><span style="line-height: 24px">标题6</span></h6>
+<p><br></p>
+<h1><span style="line-height: 36px">标题2</span></h1>
+<p>正文</p>
+<p>这是测试文档的底部。</p>
+`
 
 const TOOLBAR_CONFIG = [
   ['undo', 'redo', 'format-painter', 'clean'],
@@ -76,6 +135,45 @@ onMounted(() => {
       },
       'mind-map': true,
       'flow-chart': true,
+      'collaborative-editing': {
+        provider: {
+          type: 'websocket',
+          options: {
+            serverUrl: 'wss://120.26.92.145:1234',
+            roomName: ROOM_NAME,
+          },
+        },
+        awareness: {
+          state: {
+            name: `user-${Math.floor(Math.random() * 1000)}`,
+            color: `#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')}`,
+          },
+        },
+        cursors: {
+          hideDelayMs: 300,
+          hideSpeedMs: 300,
+          selectionChangeSource: null,
+          transformOnTextChange: true,
+        },
+        onConnect: () => {
+          // eslint-disable-next-line no-console
+          console.log('YuQue collaborative editing connected')
+        },
+        onDisconnect: () => {
+          // eslint-disable-next-line no-console
+          console.log('YuQue collaborative editing disconnected')
+        },
+        onSyncChange: (isSynced: boolean) => {
+          // eslint-disable-next-line no-console
+          console.log('YuQue collaborative editing synced:', isSynced)
+          if (isSynced && editor) {
+            const currentContent = editor.getContents()
+            if (currentContent.ops.length === 1 && currentContent.ops[0].insert === '\n') {
+              editor.clipboard.dangerouslyPasteHTML(0, DEFAULT_CONTENT)
+            }
+          }
+        },
+      },
     },
   })
 })
@@ -94,139 +192,7 @@ onMounted(() => {
     <div class="flex justify-center pt-[33px] pb-[26px]">
       <textarea v-model="title" placeholder="请输入标题" class="w-[750px] text-[#262626] h-[54px] outline-none resize-none text-[36px] font-bold placeholder-[#bfbfbf]" />
     </div>
-    <div id="editor" class="!border-0 max-w-[750px] !ml-auto !mr-auto">
-      <p>
-        这是一篇<a
-          class="ql-normal-link"
-          href="https://opentiny.github.io/tiny-editor/"
-          target="_blank"
-        >测试文档</a>
-      </p>
-      <p>这是<strong>粗体</strong></p>
-      <p>这是<em>斜体</em></p>
-      <p>这是<u class="ql-custom-strike">删除线</u></p>
-      <p>这是<u>下划线</u></p>
-      <p>这是上标X<sup>2</sup>和下标X<sub>2</sub></p>
-      <p>
-        这是<span style="color: rgb(223, 42, 63)">文本色</span>和<span
-          style="background-color: rgb(116, 182, 2)"
-        >背景色</span>
-      </p>
-      <ol class="unchecked">
-        <li class="bullet">
-          <span class="ql-ui" contenteditable="false" />这是一个无序列表
-        </li>
-        <li class="bullet">
-          <span class="ql-ui" contenteditable="false" />这是一个无序列表
-        </li>
-        <li class="ordered">
-          <span class="ql-ui" contenteditable="false" />这是一个有序列表
-        </li>
-        <li class="ordered">
-          <span class="ql-ui" contenteditable="false" />这是一个有序列表
-        </li>
-        <li class="unchecked">
-          <span class="ql-ui" contenteditable="false" />这是一个任务项
-        </li>
-        <li class="unchecked">
-          <span class="ql-ui" contenteditable="false" />这是一个任务项
-        </li>
-      </ol>
-      <blockquote>这是一段引用</blockquote>
-      <blockquote>这是一段引用</blockquote>
-      <p>
-        这是一段<code style="background-color: rgba(0, 0, 0, 0.06)">行内代码</code>。
-      </p>
-      <hr contenteditable="false">
-      <h1><span style="line-height: 36px">标题1</span></h1>
-      <h2><span style="line-height: 32px">标题2</span></h2>
-      <h3><span style="line-height: 28px">标题3</span></h3>
-      <h4><span style="line-height: 24px">标题4</span></h4>
-      <h5><span style="line-height: 24px">标题5</span></h5>
-      <h6><span style="line-height: 24px">标题6</span></h6>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <h1><span style="line-height: 36px">标题2</span></h1>
-      <p>正文</p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p><br></p>
-      <p>这是测试文档的底部。</p>
-    </div>
+    <div id="editor" class="!border-0 max-w-[750px] !ml-auto !mr-auto" />
   </div>
   <div ref="headerListRef" class="header-list is-hidden fixed top-[140px] right-0">
     <p>大纲</p>
@@ -234,8 +200,12 @@ onMounted(() => {
 </template>
 
 <style lang="scss">
+.ql-cursor-flag {
+  font-size: 20px !important;
+}
+
 .ql-editor {
-  padding: 0 !important;
+  padding-top: 28px !important;
   min-height: calc(100vh - 94px);
   font-family:
     PingFang SC,

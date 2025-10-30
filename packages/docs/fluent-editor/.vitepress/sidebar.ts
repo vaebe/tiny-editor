@@ -29,6 +29,7 @@ export function sidebar() {
         { text: 'AI', link: '/docs/demo/ai' },
         { text: '思维导图', link: '/docs/demo/mind-map' },
         { text: '流程图', link: '/docs/demo/flow-chart' },
+        { text: '协同编辑', link: '/docs/demo/collaborative-editing' },
       ],
     },
     {

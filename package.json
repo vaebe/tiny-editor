@@ -32,6 +32,7 @@
     "build:v3": "pnpm -F docs build:v3",
     "build:projects": "pnpm -F projects build",
     "build:lib": "pnpm -F @opentiny/fluent-editor build",
+    "pub": "pnpm -F @opentiny/fluent-editor pub",
     "lint": "eslint . --cache",
     "lint:fix": "eslint . --fix",
     "install:browser": "pnpm -F docs install:browser",
@@ -48,6 +49,11 @@
   "gitHooks": {
     "pre-commit": "lint-staged",
     "commit-msg": "node verifyCommit.js"
+  },
+  "pnpm": {
+    "patchedDependencies": {
+      "quill@2.0.3": "patches/quill@2.0.3.patch"
+    }
   },
   "lint-staged": {
     "*.ts": [
