@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import type FluentEditor from '@opentiny/fluent-editor'
-import LogicFlow from '@logicflow/core'
-import { DndPanel, SelectionSelect, Snapshot } from '@logicflow/extension'
 import { onMounted, ref } from 'vue'
 import '@logicflow/core/lib/style/index.css'
 import '@logicflow/extension/lib/style/index.css'
@@ -18,7 +16,7 @@ const TOOLBAR_CONFIG = [
 ]
 
 onMounted(() => {
-    Promise.all([
+  Promise.all([
     import('@opentiny/fluent-editor'),
     import('@logicflow/core'),
     import('@logicflow/extension'),
@@ -45,7 +43,7 @@ onMounted(() => {
       })
       const ops = [{ insert: '\n' }, { insert: { 'flow-chart': { nodes: [{ id: 'node1', type: 'rect', x: 100, y: 150, text: '开始' }, { id: 'node2', type: 'rect', x: 300, y: 150, text: '结束' }], edges: [{ id: 'edge1', sourceNodeId: 'node1', targetNodeId: 'node2', type: 'polyline' }] } } }, { insert: '\n\n' }]
       editor.setContents(ops)
-    }
+    },
   )
 })
 </script>
