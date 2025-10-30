@@ -1,5 +1,5 @@
 {
-  "name": "@vaebe/collaborative-editor-backend",
+  "name": "@opentiny/collaborative-editor-backend",
   "type": "module",
   "version": "0.0.2",
   "description": "A lightweight collaborative editing backend (Yjs + WebSocket + MongoDB provider) for the OpenTiny fluent editor.",
