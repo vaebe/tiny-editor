@@ -98,6 +98,7 @@ const TOOLBAR_CONFIG = [
   ],
   [{ list: 'check' }, 'link', 'blockquote', 'divider'],
   [{ 'table-up': [] }, 'header-list'],
+  ['mind-map', 'flow-chart'],
 ]
 
 onMounted(() => {
@@ -132,6 +133,8 @@ onMounted(() => {
           return result
         },
       },
+      'mind-map': true,
+      'flow-chart': true,
       'collaborative-editing': {
         provider: {
           type: 'websocket',

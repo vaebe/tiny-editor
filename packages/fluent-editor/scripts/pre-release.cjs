@@ -13,7 +13,8 @@ if (versionArr.length === 3) {
   // 普通版本号，比如：3.25.0
   const [mainVersion, subVersion, phaseVersion] = versionArr
   defaultVersion = `${mainVersion}.${subVersion}.${+phaseVersion + 1}`
-} else {
+}
+else {
   // 带 tag 标记的版本号，比如：4.0.0-alpha.0
   const [mainVersion, subVersion, tagVersion, phaseVersion] = versionArr
   defaultVersion = `${mainVersion}.${subVersion}.${tagVersion}.${+phaseVersion + 1}`
