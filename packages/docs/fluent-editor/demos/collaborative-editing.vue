@@ -13,6 +13,10 @@ window.Html2Canvas = Html2Canvas
 
 let editor: FluentEditor
 const editorRef = ref<HTMLElement>()
+let simulateInterval: NodeJS.Timeout | null = null
+let charCount = 0
+const MAX_CHARS = 500
+
 const TOOLBAR_CONFIG = [
   ['undo', 'redo', 'format-painter', 'clean'],
   [
@@ -45,6 +49,90 @@ const CURSOR_CLASSES = {
   CARET_CLASS: 'ql-cursor-caret',
   FLAG_CLASS: 'ql-cursor-flag',
   NAME_CLASS: 'ql-cursor-name',
+}
+
+function simulateTyping() {
+  if (simulateInterval) {
+    // If simulation is already running, stop it
+    clearInterval(simulateInterval)
+    simulateInterval = null
+    const button = document.getElementById('simulate-btn')
+    if (button) {
+      button.textContent = '开始模拟打字'
+    }
+    return
+  }
+
+  // Focus the editor to ensure it's in input state
+  if (editor) {
+    editor.focus()
+  }
+
+  // Reset character count
+  charCount = 0
+
+  // Start simulation
+  simulateInterval = setInterval(() => {
+    if (!editor || charCount >= MAX_CHARS) {
+      if (simulateInterval) {
+        clearInterval(simulateInterval)
+        simulateInterval = null
+      }
+      const button = document.getElementById('simulate-btn')
+      if (button) {
+        button.textContent = '开始模拟打字'
+      }
+      return
+    }
+
+    // Get current cursor position
+    const selection = editor.getSelection()
+    if (!selection) return
+
+    // Generate random content to insert
+    const randomChars = 'abcdefghijklmnopqrstuvwxyz 你好，我是中国人'
+    const randomChar = randomChars.charAt(Math.floor(Math.random() * randomChars.length))
+
+    // Insert character at cursor position
+    editor.insertText(selection.index, randomChar)
+
+    // Move cursor more naturally
+    // Get the current text length to prevent moving beyond content
+    const textLength = editor.getLength()
+
+    // After inserting character, cursor should be at selection.index + 1
+    let newIndex = selection.index + 1
+
+    // Sometimes move cursor to simulate natural typing behavior
+    const shouldMoveCursor = Math.random() < 0.3 // 30% chance to move cursor
+    if (shouldMoveCursor) {
+      // Move cursor within a reasonable range (-5 to +5 positions)
+      const moveRange = Math.floor(Math.random() * 11) - 5 // -5 to +5
+      newIndex = Math.max(0, Math.min(textLength, newIndex + moveRange))
+    }
+
+    editor.setSelection(newIndex, 0)
+
+    // Update character count
+    charCount++
+
+    // Update button text to show progress
+    const button = document.getElementById('simulate-btn')
+    if (button) {
+      button.textContent = `模拟打字中... (${charCount}/${MAX_CHARS})`
+    }
+
+    // Stop when we reach the limit
+    if (charCount >= MAX_CHARS) {
+      if (simulateInterval) {
+        clearInterval(simulateInterval)
+        simulateInterval = null
+      }
+      if (button) {
+        button.textContent = '开始模拟打字'
+      }
+    }
+  }, 1000) // Insert a character every 200ms
 }
 
 onMounted(() => {
@@ -96,7 +184,7 @@ onMounted(() => {
             provider: {
               type: 'websocket',
               options: {
-                serverUrl: 'wss://120.26.92.145:1234',
+                serverUrl: 'ws://localhost:1234',
                 roomName: ROOM_NAME,
               },
             },
@@ -130,6 +218,13 @@ onMounted(() => {
 
 <template>
   <div>
+    <button
+      id="simulate-btn"
+      style="margin-bottom: 10px;"
+      @click="simulateTyping"
+    >
+      开始模拟打字
+    </button>
     <div id="editor" ref="editorRef" />
   </div>
 </template>
