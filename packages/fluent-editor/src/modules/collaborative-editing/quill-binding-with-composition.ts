@@ -7,8 +7,8 @@ import { QuillBinding } from 'y-quill'
  * Custom QuillBinding that pauses outbound synchronization during IME composition
  * while still allowing inbound updates from remote collaborators.
  *
- * This implementation uses native DOM composition events with additional safeguards
- * to handle partial composition scenarios like "wo s我是".
+ * This implementation intercepts Quill's emitter to ensure our detection logic
+ * is properly triggered.
  */
 export class QuillBindingWithComposition {
   private ytext: Y.Text
@@ -16,10 +16,10 @@ export class QuillBindingWithComposition {
   private awareness: Awareness
   private isDestroyed: boolean = false
   private originalQuillBinding: QuillBinding
-  private compositionDepth: number = 0 // Handle nested composition events
-  private pendingSync: boolean = false // Flag to handle composition end timing
+  private isComposing: boolean = false
   private compositionStartHandler: () => void
   private compositionEndHandler: () => void
+  private originalEmit: Function | null = null
 
   constructor(
     ytext: Y.Text,
@@ -33,75 +33,110 @@ export class QuillBindingWithComposition {
     // Setup native composition event listeners
     this.setupNativeCompositionDetection()
 
-    // Create the standard QuillBinding first
-    this.originalQuillBinding = new QuillBinding(ytext, quill as any, awareness)
+    // Intercept Quill's emitter before creating the binding
+    this.interceptQuillEmitter()
 
-    // Override the text-change handling with enhanced composition awareness
-    this.setupCompositionAwareTextChange()
+    // Create the standard QuillBinding
+    this.originalQuillBinding = new QuillBinding(ytext, quill as any, awareness)
   }
 
   private setupNativeCompositionDetection(): void {
     const editorRoot = this.quill.root
 
     this.compositionStartHandler = () => {
-      this.compositionDepth++
-      this.pendingSync = false
+      this.isComposing = true
     }
 
     this.compositionEndHandler = () => {
-      this.compositionDepth--
-      // Set a flag to indicate we just ended composition
-      // This helps handle the brief window after compositionend
-      this.pendingSync = true
-      // Clear the pending flag after a short delay to allow final sync
-      setTimeout(() => {
-        if (!this.isDestroyed) {
-          this.pendingSync = false
-        }
-      }, 50)
+      this.isComposing = false
     }
 
     editorRoot.addEventListener('compositionstart', this.compositionStartHandler)
     editorRoot.addEventListener('compositionend', this.compositionEndHandler)
   }
 
-  private isInComposition(): boolean {
-    // Check if we're currently in composition or just ended it
-    return this.compositionDepth > 0 || this.pendingSync
+  private hasUnconfirmedInput(): boolean {
+    // Use comprehensive detection: both native composition state and Quill's batch state
+    const nativeComposing = this.isComposing
+    const quillBatch = Boolean(this.quill.composition?.scroll?.batch)
+    const quillComposing = Boolean(this.quill.composition?.isComposing)
+
+    console.log('Detection:', {
+      nativeComposing,
+      quillBatch,
+      quillComposing,
+      shouldBlock: nativeComposing || quillBatch || quillComposing,
+    })
+
+    // Return true if any of the indicators show unconfirmed input
+    return nativeComposing || quillBatch || quillComposing
   }
 
-  private setupCompositionAwareTextChange(): void {
-    // Remove the original text-change listener from QuillBinding
-    const originalOnQuillChange = (this.originalQuillBinding as any).onQuillChange
+  private interceptQuillEmitter(): void {
+    const emitter = this.quill.emitter
+    if (!emitter) return
 
-    if (originalOnQuillChange) {
-      // Remove the original listener
-      this.quill.off('text-change', originalOnQuillChange)
+    // Store original emit method
+    this.originalEmit = emitter.emit.bind(emitter)
 
-      // Add our enhanced composition-aware listener
-      this.quill.on('text-change', (delta: any, oldDelta: any, source: string) => {
-        if (this.isDestroyed) return
+    // Override emit method to intercept all text-related events
+    emitter.emit = (eventName: string, ...args: any[]) => {
+      if (this.isDestroyed) {
+        return this.originalEmit!(eventName, ...args)
+      }
 
-        // Only process user-initiated changes
-        if (source !== 'user') {
-          originalOnQuillChange.call(this.originalQuillBinding, delta, oldDelta, source)
-          return
+      // Log all text-related events for debugging
+      if (eventName.includes('text') || eventName.includes('change') || eventName.includes('edit')) {
+        console.log(`Event: ${eventName}`, args)
+      }
+
+      // Intercept multiple possible text update events
+      if (eventName === 'text-change'
+        || eventName === 'editor-change'
+        || eventName === 'change') {
+        // For editor-change, the structure is different
+        if (eventName === 'editor-change') {
+          const [subEventName, delta, oldDelta, source] = args
+          console.log(`editor-change sub-event: ${subEventName}`, { delta, oldDelta, source })
+
+          // Only process user-initiated text changes
+          if (subEventName === 'text-change' && source === 'user') {
+            // Check for unconfirmed input
+            if (this.hasUnconfirmedInput()) {
+              console.log('Blocking editor-change text-change due to unconfirmed input')
+              return // Don't emit the event
+            }
+          }
         }
+        else {
+          // For text-change and other events
+          const [delta, oldDelta, source] = args
+          console.log(`${eventName} event:`, { delta, oldDelta, source })
 
-        // Skip sync if in composition state
-        if (this.isInComposition()) {
-          return
+          // Only process user-initiated changes
+          if (source === 'user') {
+            // Check for unconfirmed input
+            if (this.hasUnconfirmedInput()) {
+              console.log(`Blocking ${eventName} due to unconfirmed input`)
+              return // Don't emit the event
+            }
+          }
         }
+      }
 
-        // Call the original QuillBinding's onQuillChange method
-        originalOnQuillChange.call(this.originalQuillBinding, delta, oldDelta, source)
-      })
+      // Emit the event normally
+      return this.originalEmit!(eventName, ...args)
     }
   }
 
   public destroy(): void {
     if (this.isDestroyed) return
     this.isDestroyed = true
+
+    // Restore original emit method
+    if (this.originalEmit && this.quill.emitter) {
+      this.quill.emitter.emit = this.originalEmit
+    }
 
     // Clean up native event listeners
     const editorRoot = this.quill.root
