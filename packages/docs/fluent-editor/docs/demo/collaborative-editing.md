@@ -81,7 +81,7 @@ services:
       - '27017:27017'
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin # 设置 MongoDB 初始用户名
-      MONGO_INITDB_ROOT_PASSWORD: admin!123 # 设置 MongoDB 初始密码
+      MONGO_INITDB_ROOT_PASSWORD: admin # 设置 MongoDB 初始密码
     volumes:
       - mongodb_data:/data/db
 
@@ -94,7 +94,7 @@ websocket-server:
   environment:
     HOST: ${HOST:-0.0.0.0} # 设置后端监听的网络接口
     PORT: ${PORT:-1234} # 默认 1234 端口，可以使用环境变量修改
-    MONGODB_URL: ${MONGODB_URL:-mongodb://admin:admin!123@mongodb:27017/?authSource=admin} # 如果你使用自己的 mongodb 服务需要修改此项
+    MONGODB_URL: ${MONGODB_URL:-mongodb://admin:admin@mongodb:27017/?authSource=admin} # 如果你使用自己的 mongodb 服务需要修改此项
     MONGODB_DB: ${MONGODB_DB:-tinyeditor} # 数据库名称
     MONGODB_COLLECTION: ${MONGODB_COLLECTION:-documents} # 集合名称
 
